@@ -1,5 +1,5 @@
     // Layer: 每回合结束处的记忆写回指示（conversation.chat.turnTail）。
-    var INDICATOR_TIMEOUT_MS = 90000
+    var INDICATOR_TIMEOUT_MS = 180000
     var INDICATOR_POLL_MS = 3000
 
     function fetchWriteback(sessionId, turn, seq) {

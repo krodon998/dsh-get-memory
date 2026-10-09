@@ -18,6 +18,10 @@
       return fetchJson(STATUS_URL)
     }
 
+    function fetchRepos() {
+      return fetchJson(REPOS_URL)
+    }
+
     function triggerPull() {
       return fetchJson(PULL_URL, { method: 'POST' })
     }

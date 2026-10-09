@@ -52,6 +52,23 @@
       var tokenDraftPair = React.useState('')
       var tokenDraft = tokenDraftPair[0]
       var setTokenDraft = tokenDraftPair[1]
+      var repoListPair = React.useState(null) // { ok, count, repos: [{full_name, private}] } | null
+      var repoList = repoListPair[0]
+      var setRepoList = repoListPair[1]
+
+      var loadRepos = function (silent) {
+        fetchRepos().then(function (result) {
+          setRepoList(result && result.ok ? result : { ok: false, error: (result && result.error) || '未知错误', repos: [] })
+          if (!silent && result && !result.ok) flash('获取仓库列表失败：' + (result.error || '未知错误'))
+        }, function (error) {
+          setRepoList({ ok: false, error: String((error && error.message) || error), repos: [] })
+          if (!silent) flash('获取仓库列表失败：' + String((error && error.message) || error))
+        })
+      }
+
+      React.useEffect(function () {
+        loadRepos(true)
+      }, [])
 
       var refresh = function () {
         fetchStatus().then(function (next) {
@@ -177,7 +194,8 @@
           setBusy(false)
           if (result && result.ok) {
             setTokenDraft('')
-            flash(result.verified ? '令牌已保存，仓库验证通过' : '令牌已保存，但仓库验证失败：' + (result.verifyMessage || ''))
+            flash(result.verified ? '令牌已保存，仓库验证通过' : '令牌已保存，正在读取仓库列表…')
+            loadRepos()
             setTimeout(refresh, 600)
           } else {
             flash('保存失败：' + ((result && result.message) || '未知错误'))
@@ -253,15 +271,28 @@
         ),
 
         React.createElement(Card, { title: '记忆仓库' },
-          React.createElement(FieldRow, { label: '仓库（owner/repo）' },
-            React.createElement(TextField, { value: form ? form.repo : '', onChange: function (v) { setField('repo', v) } }),
+          React.createElement(FieldRow, { label: '选择仓库' },
+            React.createElement('select', {
+              className: 'am-input',
+              value: form ? form.repo : '',
+              disabled: busy || !repoList,
+              onChange: function (event) { setField('repo', event.target.value) },
+            },
+              React.createElement('option', { value: '' }, form && form.repo ? form.repo + '（当前）' : '— 选择一个仓库 —'),
+              (repoList && repoList.repos ? repoList.repos : []).map(function (entry) {
+                return React.createElement('option', { value: entry.full_name, key: entry.full_name },
+                  entry.full_name + (entry.private ? '（私有）' : ''))
+              }),
+            ),
           ),
-          React.createElement(FieldRow, { label: '分支' },
-            React.createElement(TextField, { value: form ? form.branch : '', onChange: function (v) { setField('branch', v) } }),
+          React.createElement('div', { className: 'am-row' },
+            React.createElement(Button, { onClick: function () { loadRepos(false) }, disabled: busy }, '刷新仓库列表'),
           ),
-          React.createElement(FieldRow, { label: '主账本文件' },
-            React.createElement(TextField, { value: form ? form.ledgerFile : '', onChange: function (v) { setField('ledgerFile', v) } }),
-          ),
+          React.createElement('div', { className: 'am-notice' },
+            '仓库列表来自你保存的令牌：列表里出现的仓库才可读写。看不到目标仓库？去 GitHub 把令牌授权加到这个仓库上，再回来刷新。'),
+          form && form.repo
+            ? null
+            : React.createElement('div', { className: 'am-notice' }, '还没选仓库：现在不会注入任何内容，也不会写回。'),
         ),
 
         React.createElement(Card, { title: '文件权限' },
@@ -304,23 +335,10 @@
               on: form ? !!form.writebackEnabled : false,
               onToggle: function () { setField('writebackEnabled', !(form && form.writebackEnabled)) },
               disabled: busy,
+              title: '对话结束后自动提取新记忆并写回仓库（会消耗模型额度，默认关闭）',
             }),
           ),
-          React.createElement(FieldRow, { label: '写回防抖（毫秒）' },
-            React.createElement(NumberField, { value: form ? form.writebackDebounceMs : 0, onChange: function (v) { setField('writebackDebounceMs', v) } }),
-          ),
-          React.createElement(FieldRow, { label: '转录上限（字符）' },
-            React.createElement(NumberField, { value: form ? form.maxTranscriptChars : 0, onChange: function (v) { setField('maxTranscriptChars', v) } }),
-          ),
-          React.createElement(FieldRow, { label: '最低转录长度' },
-            React.createElement(NumberField, { value: form ? form.minConversationChars : 0, onChange: function (v) { setField('minConversationChars', v) } }),
-          ),
-          React.createElement(FieldRow, { label: '提取模型 provider' },
-            React.createElement(TextField, { value: form ? form.extractProvider : '', placeholder: '留空用会话模型', onChange: function (v) { setField('extractProvider', v) } }),
-          ),
-          React.createElement(FieldRow, { label: '提取模型 model' },
-            React.createElement(TextField, { value: form ? form.extractModel : '', placeholder: '留空用会话模型', onChange: function (v) { setField('extractModel', v) } }),
-          ),
+          React.createElement('div', { className: 'am-notice' }, '开启后：回合结束并静止约 30 秒后开始写回；等待期内发送新消息会顺延。写回需调用模型并提交到仓库，通常耗时 1-3 分钟，期间输入框下方会常驻「记忆整理中…」提示。'),
         ),
 
         React.createElement(Card, { title: '触发与范围' },
@@ -352,24 +370,12 @@
               on: form ? form.showGlobalNotice !== false : true,
               onToggle: function () { setField('showGlobalNotice', form ? form.showGlobalNotice === false : false) },
               disabled: busy,
-              title: '写回有变动时在输入框上方显示小条提示',
+              title: '输入框下方全程提示：整理中（常驻）→ 已更新 / 无新记忆 / 失败',
             }),
-          ),
-          React.createElement(FieldRow, { label: '每次写回最多文件数' },
-            React.createElement(NumberField, { value: form ? form.maxWriteFiles : 5, onChange: function (v) { setField('maxWriteFiles', v) } }),
           ),
         ),
 
         React.createElement(Card, { title: '其他' },
-          React.createElement(FieldRow, { label: '注入排序号' },
-            React.createElement(NumberField, { value: form ? form.injectOrder : 100, onChange: function (v) { setField('injectOrder', v) } }),
-          ),
-          React.createElement(FieldRow, { label: '请求超时（毫秒）' },
-            React.createElement(NumberField, { value: form ? form.requestTimeoutMs : 15000, onChange: function (v) { setField('requestTimeoutMs', v) } }),
-          ),
-          React.createElement(FieldRow, { label: '记录保留条数' },
-            React.createElement(NumberField, { value: form ? form.historyLimit : 50, onChange: function (v) { setField('historyLimit', v) } }),
-          ),
           React.createElement(Row, { label: '自动发现新文件' },
             React.createElement(Switch, {
               on: form ? form.autoDiscoverFiles !== false : true,

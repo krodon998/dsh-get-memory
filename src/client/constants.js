@@ -1,6 +1,7 @@
     // Layer: identity and shared constants.
     var PACKAGE = 'dsh-get-memory'
     var STATUS_URL = '/aire-memory/status'
+    var REPOS_URL = '/aire-memory/repos'
     var PULL_URL = '/aire-memory/pull'
     var WRITEBACK_URL = '/aire-memory/writeback'
     var TOKEN_URL = '/aire-memory/token'

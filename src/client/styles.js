@@ -37,6 +37,7 @@
       '.am-indicator:hover{color:var(--ds-color-text-secondary,#6b7280)}',
       '.am-global-notice{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ds-color-text-secondary,#6b7280);background:color-mix(in srgb, var(--ds-color-bg-card,#ffffff) 72%, transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid color-mix(in srgb, var(--ds-color-border,#e5e7eb) 60%, transparent);border-radius:999px;padding:4px 12px;animation:amFadeIn .28s ease both}',
       '.am-global-notice .am-dot{margin-right:0}',
+      '.am-pulse-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;flex:none;animation:amBreathe 2.4s ease-in-out infinite}',
     ].join('\n')
 
     function installStyles() {
