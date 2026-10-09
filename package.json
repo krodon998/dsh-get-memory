@@ -1,0 +1,64 @@
+{
+  "name": "dsh-get-memory",
+  "version": "0.3.1",
+  "description": "Get记忆插件：对话开始时自动拉取GitHub指定仓库的内容并注入上下文；对话结束时提取值得长期记住的新信息写回并提交；左栏快捷面板实时查看状态，设置界面进行详细配置",
+  "type": "module",
+  "main": "./lib/index.v8.js",
+  "exports": {
+    ".": "./lib/index.v8.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client.js",
+    "src",
+    "scripts",
+    "docs",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krodon998/dsh-get-memory.git"
+  },
+  "homepage": "https://github.com/krodon998/dsh-get-memory#readme",
+  "bugs": {
+    "url": "https://github.com/krodon998/dsh-get-memory/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1-rc.1",
+    "@deepseek-ai/schemastery": "^3.18.1-rc.1"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    },
+    "@deepseek-ai/schemastery": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "keywords": [
+    "dsh",
+    "plugin",
+    "cordis",
+    "memory",
+    "aire",
+    "github",
+    "get-memory",
+    "deepseek-harness"
+  ]
+}

@@ -1,0 +1,11 @@
+    // Layer: identity and shared constants.
+    var PACKAGE = 'dsh-get-memory'
+    var STATUS_URL = '/aire-memory/status'
+    var PULL_URL = '/aire-memory/pull'
+    var WRITEBACK_URL = '/aire-memory/writeback'
+    var TOKEN_URL = '/aire-memory/token'
+    var CONFIG_URL = '/aire-memory/config'
+    var FILESYNC_URL = '/aire-memory/filesync'
+    var TOKEN_REF = 'AIRE_MEMORY_GITHUB_TOKEN'
+    var PANEL_KEY = 'aire-memory'
+    var STYLE_ID = 'dsh-aire-memory-style'

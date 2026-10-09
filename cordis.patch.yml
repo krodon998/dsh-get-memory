@@ -1,0 +1,7 @@
+# dsh-aire-memory bundle patch: registers the Aire 记忆插件 host plugin.
+# 每次对话开始自动拉取记忆仓库文件并注入上下文；对话结束自动提取记忆写回并提交。
+# 行 id `aire-memory` 保持稳定：若其他 bundle 已占用该 id，先停用其一。
+
+- insert:
+    - id: aire-memory
+      name: 'dsh-get-memory'
