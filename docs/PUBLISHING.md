@@ -4,17 +4,17 @@
 
 ## 1. GitHub 仓库（隐的账号）
 
-- [ ] 新建公开仓库（建议名：`dsh-get-memory`，与包名一致），描述写「Get记忆插件：对话开始时自动拉取GitHub指定仓库的内容并注入上下文；对话结束时提取值得长期记住的新信息写回并提交；左栏快捷面板实时查看状态，设置界面进行详细配置」
-- [ ] 把本目录（local-plugins/dsh-aire-memory）作为仓库根推送（README / LICENSE 已就绪）
-- [ ] 添加 topic：`dsh-plugin`、`deepseek-harness`
-- [ ] 发布第一个 Release（v0.3.0）
+- [x] 新建公开仓库（建议名：`dsh-get-memory`，与包名一致），描述写「Get记忆插件：对话开始时自动拉取GitHub指定仓库的内容并注入上下文；对话结束时提取值得长期记住的新信息写回并提交；左栏快捷面板实时查看状态，设置界面进行详细配置」
+- [x] 把本目录（local-plugins/dsh-aire-memory）作为仓库根推送（README / LICENSE 已就绪）
+- [x] 添加 topic：`dsh-plugin`、`deepseek-harness`（另加 `cordis`、`get-memory`）
+- [x] 发布第一个 Release（v0.3.1）
 
 ## 2. npm 发布
 
-- [x] 包名已定：`dsh-get-memory`（本地已改为此名并装载验证）
-- [ ] 补充 package.json 元数据：`repository`（GitHub 仓库地址）、`homepage`、`bugs`
-- [ ] 本地再验证一遍：插件页、面板、设置页、写回都正常
-- [ ] `npm publish`（公开包）
+- [x] 包名已定：`dsh-get-memory`（本地已改为此名并装载验证；registry 查询 404 未占用）
+- [x] 补充 package.json 元数据：`repository`（GitHub 仓库地址）、`homepage`、`bugs`
+- [x] 本地再验证一遍：插件页、面板、设置页、写回都正常
+- [ ] `npm publish`（公开包）——待隐开通 npm 账号并现取 Publish Token
 
 ## 3. 上架 DSH 插件目录 / 市场
 
@@ -23,7 +23,7 @@
 - [ ] **dsh-plugin-radar**：提交收录（issue / PR）
 - [ ] **awesome-dsh-plugin**：PR 添加条目
 - [ ] **dshmarket**（DSH 内置插件市场）：按市场作者的上架规则提交
-- [ ] GitHub topic `dsh-plugin` 已加（第 1 步），目录聚合会自动发现
+- [x] GitHub topic `dsh-plugin` 已加（第 1 步），目录聚合会自动发现
 
 ## 4. 内容与安全提醒
 
