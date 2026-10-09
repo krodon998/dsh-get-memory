@@ -22,6 +22,18 @@
       return fetchJson(REPOS_URL)
     }
 
+    function initRepo() {
+      return fetchJson(INIT_URL, { method: 'POST' })
+    }
+
+    function checkUpdate() {
+      return fetch('https://registry.npmjs.org/dsh-get-memory/latest')
+        .then(function (response) {
+          if (!response.ok) throw new Error('HTTP ' + response.status)
+          return response.json()
+        })
+    }
+
     function triggerPull() {
       return fetchJson(PULL_URL, { method: 'POST' })
     }

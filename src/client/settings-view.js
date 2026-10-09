@@ -55,6 +55,9 @@
       var repoListPair = React.useState(null) // { ok, count, repos: [{full_name, private}] } | null
       var repoList = repoListPair[0]
       var setRepoList = repoListPair[1]
+      var latestVersionPair = React.useState(null)
+      var latestVersion = latestVersionPair[0]
+      var setLatestVersion = latestVersionPair[1]
 
       var loadRepos = function (silent) {
         fetchRepos().then(function (result) {
@@ -146,6 +149,44 @@
         }, function (error) {
           setBusy(false)
           flash('应用失败：' + String((error && error.message) || error))
+        })
+      }
+
+      var onInitRepo = function () {
+        if (busy) return
+        setBusy(true)
+        initRepo().then(function (result) {
+          setBusy(false)
+          if (result && result.ok && result.initOk) {
+            flash('初始化成功！已创建 ' + result.created + '，开始使用吧')
+            onSyncFiles()
+            setTimeout(refresh, 600)
+          } else {
+            flash((result && result.message) || '初始化失败')
+          }
+        }, function (error) {
+          setBusy(false)
+          flash('初始化失败：' + String((error && error.message) || error))
+        })
+      }
+
+      var onCheckUpdate = function () {
+        if (busy) return
+        setBusy(true)
+        checkUpdate().then(function (meta) {
+          setBusy(false)
+          setLatestVersion(meta && meta.version ? meta.version : null)
+          var current = status && status.version ? status.version : '未知'
+          if (meta && meta.version && meta.version !== current) {
+            flash('发现新版本 ' + meta.version + '（当前 ' + current + '）。更新命令：dsh plugin --profile web add dsh-get-memory@' + meta.version)
+          } else if (meta && meta.version) {
+            flash('已是最新版本 ' + meta.version)
+          } else {
+            flash('检查失败：没拿到版本信息')
+          }
+        }, function (error) {
+          setBusy(false)
+          flash('检查更新失败：' + String((error && error.message) || error))
         })
       }
 
@@ -299,6 +340,15 @@
           React.createElement(Row, { label: '同步仓库文件列表' },
             React.createElement(Button, { primary: true, onClick: onSyncFiles, disabled: busy }, busy ? '同步中…' : '同步文件列表'),
           ),
+          fileSync && fileSync.files && fileSync.files.length === 0
+            ? React.createElement('div', { className: 'am-row' },
+                React.createElement(Button, { primary: true, onClick: onInitRepo, disabled: busy }, busy ? '初始化中…' : '一键初始化记忆仓库'),
+              )
+            : null,
+          fileSync && fileSync.files && fileSync.files.length === 0
+            ? React.createElement('div', { className: 'am-notice' },
+                '这个仓库还没有记忆文件。点「一键初始化」，插件会用你的令牌自动创建一个 长期记忆账本.md，之后就能正常读写——不用你去 GitHub 手动建。')
+            : null,
           fileSync && fileSync.files
             ? fileSync.files.map(function (entry) {
                 return React.createElement(Row, { label: React.createElement(React.Fragment, null,
@@ -384,6 +434,16 @@
               title: '每次拉取时把仓库根目录新出现的 .md 文件自动加入注入列表',
             }),
           ),
+          React.createElement(Row, { label: '版本' },
+            React.createElement('span', { className: 'am-value' },
+              '当前 ' + (status && status.version ? status.version : '未知')
+              + (latestVersion ? '　·　npm 最新 ' + latestVersion : ''),
+            ),
+          ),
+          React.createElement(Row, { label: '检查更新' },
+            React.createElement(Button, { onClick: onCheckUpdate, disabled: busy }, busy ? '检查中…' : '检查更新'),
+          ),
+          React.createElement('div', { className: 'am-notice' }, '更新方式：`dsh plugin --profile web add dsh-get-memory@最新版本号`'),
         ),
 
         React.createElement('div', { className: 'am-row' },
