@@ -1,6 +1,6 @@
 {
   "name": "dsh-get-memory",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Get记忆插件：对话开始时自动拉取GitHub指定仓库的内容并注入上下文；对话结束时提取值得长期记住的新信息写回并提交；左栏快捷面板实时查看状态，设置界面进行详细配置",
   "type": "module",
   "main": "./lib/index.v8.js",
