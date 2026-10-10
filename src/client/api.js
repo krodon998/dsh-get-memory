@@ -26,6 +26,14 @@
       return fetchJson(INIT_URL, { method: 'POST' })
     }
 
+    function fetchSessionEnabled(session) {
+      return fetchJson(SESSION_URL + '?session=' + encodeURIComponent(session || ''))
+    }
+
+    function setSessionEnabled(session, enabled) {
+      return postJson(SESSION_URL + '?session=' + encodeURIComponent(session || ''), { enabled: enabled })
+    }
+
     function checkUpdate() {
       return fetch('https://registry.npmjs.org/dsh-get-memory/latest')
         .then(function (response) {

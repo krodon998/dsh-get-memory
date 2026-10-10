@@ -16,6 +16,8 @@ const CLIENT_LAYERS = [
   'api.js',
   'styles.js',
   'components.js',
+  'guide.js',
+  'toast.js',
   'indicator.js',
   'settings-view.js',
   'notice.js',

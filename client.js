@@ -14,6 +14,7 @@ window.__ModuleLoader__.load({
     var STATUS_URL = '/aire-memory/status'
     var REPOS_URL = '/aire-memory/repos'
     var INIT_URL = '/aire-memory/init'
+    var SESSION_URL = '/aire-memory/session'
     var PULL_URL = '/aire-memory/pull'
     var WRITEBACK_URL = '/aire-memory/writeback'
     var TOKEN_URL = '/aire-memory/token'
@@ -49,6 +50,14 @@ window.__ModuleLoader__.load({
 
     function initRepo() {
       return fetchJson(INIT_URL, { method: 'POST' })
+    }
+
+    function fetchSessionEnabled(session) {
+      return fetchJson(SESSION_URL + '?session=' + encodeURIComponent(session || ''))
+    }
+
+    function setSessionEnabled(session, enabled) {
+      return postJson(SESSION_URL + '?session=' + encodeURIComponent(session || ''), { enabled: enabled })
     }
 
     function checkUpdate() {
@@ -142,6 +151,50 @@ window.__ModuleLoader__.load({
       '.am-global-notice{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ds-color-text-secondary,#6b7280);background:color-mix(in srgb, var(--ds-color-bg-card,#ffffff) 72%, transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid color-mix(in srgb, var(--ds-color-border,#e5e7eb) 60%, transparent);border-radius:999px;padding:4px 12px;animation:amFadeIn .28s ease both}',
       '.am-global-notice .am-dot{margin-right:0}',
       '.am-pulse-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;flex:none;animation:amBreathe 2.4s ease-in-out infinite}',
+      '.am-dock-control{display:inline-flex;align-items:center;gap:8px;flex:none}',
+      '.am-dock-pill{display:inline-flex;align-items:center;border-radius:999px;border:1px solid color-mix(in srgb,var(--ds-color-border,#e5e7eb) 70%,transparent);background:color-mix(in srgb,var(--ds-color-bg-card,#ffffff) 72%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);overflow:hidden}',
+      '.am-session-toggle{font-size:12px;line-height:1;border:none;border-right:1px solid color-mix(in srgb,var(--ds-color-border,#e5e7eb) 70%,transparent);background:transparent;color:var(--ds-color-text-secondary,#6b7280);padding:5px 10px;cursor:pointer;transition:all .2s ease}',
+      '.am-session-toggle:hover{color:var(--ds-color-text,#111827)}',
+      '.am-session-toggle.am-on{color:#16a34a}',
+      '.am-dock-pill .am-global-notice{border:none;background:none;border-radius:0;padding:4px 12px 4px 10px;animation:none}',
+      '.am-menu-item{display:flex;align-items:center;gap:6px;width:100%;min-height:34px;padding:6px 8px;border:none;border-radius:8px;background:transparent;cursor:pointer;font:inherit;font-size:13px;line-height:20px;text-align:left;color:var(--ds-color-text,#111827)}',
+      '.am-menu-item:hover{background:color-mix(in srgb,var(--ds-color-bg-secondary,#f3f4f6) 70%,transparent)}',
+      '.am-menu-item-icon{display:inline-flex;flex:none;width:14px;height:14px;align-items:center;justify-content:center;color:var(--ds-color-text-secondary,#6b7280)}',
+      '.am-number-field{display:flex;align-items:center;gap:4px;flex:1;min-width:0}',
+      '.am-number-btn{flex:none;width:24px;height:24px;border-radius:6px;border:1px solid var(--ds-color-border,#e5e7eb);background:color-mix(in srgb,var(--ds-color-bg-secondary,#f3f4f6) 80%,transparent);color:var(--ds-color-text,#111827);cursor:pointer;font-size:14px;line-height:1}',
+      '.am-number-btn:disabled{opacity:.4;cursor:not-allowed}',
+      '.am-number-input{width:64px;flex:none;text-align:center}',
+      '.am-guide-banner{margin:0 0 14px;border:1px solid color-mix(in srgb,var(--ds-color-accent,#6366f1) 35%,transparent);border-radius:14px;padding:12px 14px;background:color-mix(in srgb,var(--ds-color-bg-card,#ffffff) 80%,transparent);position:relative}',
+      '.am-guide-banner-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}',
+      '.am-guide-banner-title{font-size:14px;font-weight:600;color:var(--ds-color-text,#111827)}',
+      '.am-guide-close{border:none;background:none;font-size:18px;line-height:1;cursor:pointer;color:var(--ds-color-text-secondary,#6b7280);padding:2px 6px;border-radius:8px}',
+      '.am-guide-close:hover{background:color-mix(in srgb,var(--ds-color-border,#e5e7eb) 50%,transparent)}',
+      '.am-guide-close.am-disabled{opacity:.35;cursor:not-allowed}',
+      '.am-guide-banner-buttons{display:flex;flex-wrap:wrap;gap:8px}',
+      '.am-guide-button{font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--ds-color-accent,#6366f1) 40%,transparent);background:transparent;color:var(--ds-color-accent,#6366f1);cursor:pointer;transition:all .2s ease}',
+      '.am-guide-button:hover{background:color-mix(in srgb,var(--ds-color-accent,#6366f1) 12%,transparent)}',
+      '.am-guide-button.am-guide-active{background:color-mix(in srgb,var(--ds-color-accent,#6366f1) 18%,transparent);font-weight:600}',
+      '.am-guide-mask{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:24px}',
+      '.am-guide-modal{max-width:520px;width:100%;max-height:76vh;overflow:auto;background:var(--ds-color-bg-card,#ffffff);color:var(--ds-color-text,#111827);border-radius:16px;padding:18px 20px;box-shadow:0 20px 60px rgba(0,0,0,.25)}',
+      '.am-guide-modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}',
+      '.am-guide-modal-title{font-size:16px;font-weight:600}',
+      '.am-guide-modal-body{font-size:13px;line-height:1.8;white-space:pre-wrap;color:var(--ds-color-text,#111827)}',
+      '.am-link{font-size:13px;color:var(--ds-color-accent,#6366f1);text-decoration:none;margin-right:16px}',
+      '.am-link:hover{text-decoration:underline}',
+      '.am-changelog{margin-top:10px;font-size:13px;color:var(--ds-color-text-secondary,#6b7280)}',
+      '.am-changelog summary{cursor:pointer;color:var(--ds-color-text,#111827);font-weight:500}',
+      '.am-changelog-body{margin-top:8px;display:flex;flex-direction:column;gap:6px}',
+      '.am-changelog-row{display:flex;gap:10px;align-items:baseline}',
+      '.am-changelog-ver{font-family:monospace;color:var(--ds-color-accent,#6366f1);flex:none}',
+      '.am-toast-root{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:2147483000;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;width:max-content;max-width:82vw}',
+      '.am-toast{font-size:13px;line-height:1.5;padding:9px 16px;border-radius:12px;background:var(--ds-color-bg-card,#ffffff);color:var(--ds-color-text,#111827);border:1px solid color-mix(in srgb,var(--ds-color-border,#e5e7eb) 70%,transparent);box-shadow:0 10px 32px rgba(0,0,0,.16);animation:amToastIn .25s ease both}',
+      '.am-toast.warn{border-color:color-mix(in srgb,#f59e0b 45%,transparent)}',
+      '.am-toast.ok{border-color:color-mix(in srgb,#16a34a 45%,transparent)}',
+      '.am-toast.error{border-color:color-mix(in srgb,#ef4444 45%,transparent)}',
+      '@keyframes amToastIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}',
+      '.am-settings{padding-bottom:16px}',
+      '.am-save-bar{position:sticky;bottom:0;z-index:30;display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:14px;padding:10px 16px;border-radius:14px;border:1px solid color-mix(in srgb,var(--ds-color-border,#e5e7eb) 60%,transparent);background:color-mix(in srgb,var(--ds-color-bg-card,#ffffff) 82%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 -6px 20px rgba(0,0,0,.08)}',
+      '.am-save-hint{font-size:12px;color:var(--ds-color-text-secondary,#6b7280);margin-right:auto}',
     ].join('\n')
 
     function installStyles() {
@@ -262,7 +315,8 @@ window.__ModuleLoader__.load({
         return function () { clearInterval(timer) }
       }, [])
 
-      var flash = function (text) {
+      var flash = function (text, tone) {
+        amToast(text, tone)
         setNotice(text)
         setTimeout(function () { setNotice('') }, 4000)
       }
@@ -273,7 +327,7 @@ window.__ModuleLoader__.load({
         triggerPull().then(function (next) {
           setStatus(next)
           setBusy(false)
-          flash(next && next.pullOk ? '拉取完成' : '拉取没有完全成功，看状态卡片')
+          flash(next && next.pullOk ? '拉取完成' : '拉取没有完全成功——多半是网络波动，稍后重试，已有记忆缓存不受影响 (´･ω･`)')
         }, function (error) {
           setBusy(false)
           flash('拉取失败：' + String((error && error.message) || error))
@@ -333,6 +387,7 @@ window.__ModuleLoader__.load({
       var lastWriteback = status && status.lastWriteback
 
       return React.createElement('div', { className: 'am-panel' },
+        React.createElement(GuideBanner),
         React.createElement(Card, { title: React.createElement(React.Fragment, null,
           React.createElement(AireIcon, { size: 16 }),
           'Get记忆 · ' + ((status && status.repo) || ''),
@@ -389,13 +444,226 @@ window.__ModuleLoader__.load({
           ),
         ),
 
-        React.createElement(Card, { title: '最近记录' },
+        React.createElement(Card, { title: '最近修改记录' },
           React.createElement(HistoryList, { history: status && status.history }),
         ),
 
         notice
           ? React.createElement('div', { className: 'am-notice' }, notice)
           : null,
+      )
+    }
+
+    // Layer: 设置引导——首次安装/大更新后在面板与设置页顶部显示引导卡（可叉，但至少点开一个教程后才能叉掉）。
+    var GUIDE_STORAGE_KEY = 'dsh-get-memory:guide-seen'
+    var GUIDE_VERSION = 'v0.5.1'
+
+    // 弹窗用 portal 挂到 body：面板的毛玻璃滤镜会让 fixed 定位被圈在面板内，盖不住外面的保存浮层。
+    var GuideReactDOM = null
+    try { GuideReactDOM = require('react-dom') } catch { GuideReactDOM = null }
+
+    var GUIDE_ITEMS = [
+      {
+        id: 'token',
+        title: '前置：获取 GitHub 令牌',
+        body: [
+          '1. 前往 GitHub（代码托管网站）新建一个私有仓库（private repository），或挑一个已有的——它就是你的「记忆库」；',
+          '2. 右上角头像 → Settings（设置）→ Developer settings（开发者设置）→ Personal access tokens（个人访问令牌）→ Fine-grained tokens（细颗粒度令牌）→ Generate new token（生成新令牌）；',
+          '3. Repository access（仓库授权范围）选择 Only select repositories（只选择指定仓库），并勾选指定记忆库；Permissions（权限）里把 Contents（仓库内容）设为 Read and write（读写），其余权限一律不要；',
+          '4. 生成后复制令牌（github_pat_ 开头），回到本插件粘贴保存。这个令牌能让所有装了本插件的前端读写同一份记忆。',
+        ].join('\n\n'),
+      },
+      {
+        id: 'setup',
+        title: '新装配置引导',
+        body: [
+          '1. 令牌框粘贴令牌 → 保存；',
+          '2. 「记忆仓库」会自动列出令牌能看到的仓库 → 选你的记忆库 → 保存全部设置；',
+          '3. 读取到文件后可分别设置读写权限；空仓库可点击「一键初始化记忆仓库」，插件会帮你建好第一个文件；',
+          '4. 回到对话界面正常聊天：自动把仓库内容注入上下文，新对话默认开启使用本插件。',
+        ].join('\n\n'),
+      },
+      {
+        id: 'custom',
+        title: '快速自定义设置',
+        body: [
+          '· 记忆变动提醒胶囊：设置页「触发与范围」里开关，还能选「临时显示 / 长期显示」；',
+          '· 仓库新文件默认「读写」（会作为写回目标），可在「文件权限」卡片里逐个改成「只读」；',
+          '· 检查更新：设置页「其他」卡片点「检查更新」，检测到新版会提示更新；',
+          '· 自动写回开关：默认关闭（保护模型额度），需要写入长期记忆时再打开。',
+        ].join('\n\n'),
+      },
+      {
+        id: 'tips',
+        title: '使用 tips',
+        body: [
+          '【写回节奏】\n· 写回时机：一段对话结束并静止约 30 秒后，插件自动整理 0-2 分钟（调用模型 + 提交 GitHub），期间输入框下方会常驻「记忆整理中…」；',
+          '【记忆仓库】\n· 底层逻辑：仓库里的 Markdown（纯文本标记格式）文件 = 你跨设备共享的记忆；GitHub 令牌 = 插件读写它们的钥匙；没配仓库之前插件不注入也不写回任何东西；\n· 本插件只适配 DSH（DeepSeek Harness 桌面应用）软件端。网页版 DSH 就是软件端的镜像页面，插件能力跟随软件端生效，不做独立 web 插件；',
+          '【界面入口】\n· 每个对话窗口输入框下方都有「记忆 ✓/✕」小按钮，可以快捷暂停该窗口的写回；\n· 复制会话 ID：左侧会话列表点击「⋯」图标 →「复制会话 ID」，再粘进设置页「应用于会话」，就能精确圈定哪些窗口写回；\n· 改完任何设置记得点底部「保存全部设置」，否则不生效。',
+        ].join('\n\n'),
+      },
+      {
+        id: 'changelog',
+        title: '本次重要更新（v0.5.0）',
+        body: [
+          '· 新增「设置引导」：首次使用手把手教学；',
+          '· 输入框下方新增「本窗口记忆开关」，可单独暂停某个对话的写回；',
+          '· 全局提示胶囊支持「长期显示 / 临时显示」两种模式；',
+          '· 修复：仓库文件被删除后拉取会重复计「失败」，现在自动清理旧记录；',
+          '· 文案更易读（「每多少条对话写回一次记忆」等）。',
+        ].join('\n\n'),
+      },
+    ]
+
+    function GuideModal(props) {
+      if (!props.item) return null
+      var modal = React.createElement('div', { className: 'am-guide-mask', onClick: props.onClose },
+        React.createElement('div', { className: 'am-guide-modal', onClick: function (event) { event.stopPropagation() } },
+          React.createElement('div', { className: 'am-guide-modal-head' },
+            React.createElement('span', { className: 'am-guide-modal-title' }, props.item.title),
+            React.createElement('button', { type: 'button', className: 'am-guide-close', onClick: props.onClose }, '×'),
+          ),
+          props.items
+            ? React.createElement('div', { className: 'am-guide-banner-buttons' },
+                props.items.map(function (item) {
+                  return React.createElement('button', {
+                    type: 'button',
+                    className: 'am-guide-button' + (props.item.id === item.id ? ' am-guide-active' : ''),
+                    key: item.id,
+                    onClick: function () { if (props.onSelect) props.onSelect(item) },
+                  }, item.title.replace(/^（.*?）/, '').split('：')[0].split('（')[0])
+                }),
+              )
+            : null,
+          React.createElement('div', { className: 'am-guide-modal-body' }, props.item.body),
+        ),
+      )
+      if (GuideReactDOM && typeof GuideReactDOM.createPortal === 'function') {
+        try { return GuideReactDOM.createPortal(modal, document.body) } catch { /* 回退内联渲染 */ }
+      }
+      return modal
+    }
+
+    function GuideBanner() {
+      var seenPair = React.useState(function () {
+        try { return localStorage.getItem(GUIDE_STORAGE_KEY) === GUIDE_VERSION } catch { return true }
+      })
+      var seen = seenPair[0]
+      var setSeen = seenPair[1]
+      var openedPair = React.useState(false)
+      var openedAny = openedPair[0]
+      var setOpenedAny = openedPair[1]
+      var modalPair = React.useState(null)
+      var modal = modalPair[0]
+      var setModal = modalPair[1]
+
+      var openItem = function (item) {
+        setModal(item)
+        if (!openedAny) {
+          setOpenedAny(true)
+          try { localStorage.setItem(GUIDE_STORAGE_KEY, GUIDE_VERSION) } catch { /* 忽略 */ }
+        }
+      }
+
+      var dismiss = function () {
+        if (!openedAny) return // 至少点开一个教程才能叉掉
+        setSeen(true)
+      }
+
+      if (seen) return null
+      return React.createElement(React.Fragment, null,
+        React.createElement('div', { className: 'am-guide-banner' },
+          React.createElement('div', { className: 'am-guide-banner-head' },
+            React.createElement('span', { className: 'am-guide-banner-title' }, '💡 设置引导'),
+            React.createElement('button', {
+              type: 'button',
+              className: 'am-guide-close' + (openedAny ? '' : ' am-disabled'),
+              onClick: dismiss,
+              title: openedAny ? '关闭引导' : '先点开一个教程看看，之后才能关闭',
+            }, '×'),
+          ),
+          React.createElement('div', { className: 'am-guide-banner-buttons' },
+            GUIDE_ITEMS.map(function (item) {
+              return React.createElement('button', {
+                type: 'button',
+                className: 'am-guide-button',
+                key: item.id,
+                onClick: function () { openItem(item) },
+              }, item.title.replace(/^（.*?）/, '').split('：')[0].split('（')[0])
+            }),
+          ),
+          React.createElement('div', { className: 'am-notice' }, openedAny
+            ? '教程看过了？点右上角 × 关闭。以后随时可在 设置 → 关于 Get记忆 → 「查看教程」回看。'
+            : '第一次使用？从「获取 GitHub 令牌」开始，点开任意一个教程看完就能关闭本引导。以后随时可在 设置 → 关于 Get记忆 → 「查看教程」回看。'),
+        ),
+        React.createElement(GuideModal, { item: modal, onClose: function () { setModal(null) } }),
+      )
+    }
+
+    // Layer: 教程入口——叉掉引导卡后，用户随时可以从「关于 Get记忆」卡片点开再看。
+    function GuideLauncher(props) {
+      var modalPair = React.useState(null)
+      var modal = modalPair[0]
+      var setModal = modalPair[1]
+
+      return React.createElement(React.Fragment, null,
+        React.createElement(Button, { onClick: function () { setModal(GUIDE_ITEMS[0]) } }, '查看教程'),
+        React.createElement(GuideModal, {
+          item: modal,
+          items: GUIDE_ITEMS,
+          onSelect: function (item) { setModal(item) },
+          onClose: function () { setModal(null) },
+        }),
+      )
+    }
+
+    // Layer: 顶部提醒气泡（toast）——所有操作反馈统一走这里，浮在界面最上方，几秒自动消失。
+    var toastListeners = []
+    var toastSeq = 0
+
+    function amToast(text, tone) {
+      toastSeq += 1
+      var entry = { id: toastSeq, text: String(text), tone: tone || 'warn' }
+      toastListeners.forEach(function (fn) { try { fn(entry) } catch { /* 忽略 */ } })
+    }
+
+    function subscribeToast(fn) {
+      toastListeners.push(fn)
+      return function () {
+        toastListeners = toastListeners.filter(function (item) { return item !== fn })
+      }
+    }
+
+    function ToastHost() {
+      var listPair = React.useState([])
+      var list = listPair[0]
+      var setList = listPair[1]
+      var timersRef = React.useRef({})
+
+      React.useEffect(function () {
+        var alive = true
+        var off = subscribeToast(function (entry) {
+          if (!alive) return
+          setList(function (current) {
+            return current.concat([entry]).slice(-3)
+          })
+          var t = setTimeout(function () {
+            if (!alive) return
+            setList(function (current) { return current.filter(function (item) { return item.id !== entry.id }) })
+          }, entry.text.length > 40 ? 6500 : 4500)
+          timersRef.current[entry.id] = t
+        })
+        return function () {
+          alive = false
+          off()
+          Object.keys(timersRef.current).forEach(function (key) { clearTimeout(timersRef.current[key]) })
+        }
+      }, [])
+
+      return React.createElement('div', { className: 'am-toast-root' },
+        list.map(function (entry) {
+          return React.createElement('div', { className: 'am-toast ' + entry.tone, key: entry.id }, entry.text)
+        }),
       )
     }
 
@@ -508,12 +776,45 @@ window.__ModuleLoader__.load({
     }
 
     function NumberField(props) {
-      return React.createElement('input', {
-        className: 'am-input',
-        type: 'number',
-        value: props.value === undefined || props.value === null ? '' : String(props.value),
-        onChange: function (event) { props.onChange(Number(event.target.value)) },
-      })
+      var min = props.min === undefined ? 1 : props.min
+      var current = Number(props.value)
+      var clamped = Number.isFinite(current) ? Math.max(min, Math.floor(current)) : min
+      return React.createElement('div', { className: 'am-number-field' },
+        React.createElement('button', {
+          type: 'button',
+          className: 'am-number-btn',
+          disabled: clamped <= min,
+          title: clamped <= min ? '最小就是 ' + min : '',
+          onClick: function () { props.onChange(Math.max(min, clamped - 1)) },
+        }, '−'),
+        React.createElement('input', {
+          className: 'am-input am-number-input',
+          type: 'number',
+          min: min,
+          step: 1,
+          value: props.value === undefined || props.value === null ? '' : String(props.value),
+          onChange: function (event) {
+            var raw = event.target.value
+            var num = Number(raw)
+            if (raw === '' || !Number.isFinite(num) || num < min) {
+              // 输入非法时先不写回，失焦时 NumberField 的 value 仍受控；直接夹到最小
+              if (raw === '') return
+              props.onChange(min)
+              return
+            }
+            props.onChange(Math.floor(num))
+          },
+          onBlur: function (event) {
+            var num = Number(event.target.value)
+            if (!Number.isFinite(num) || num < min) props.onChange(min)
+          },
+        }),
+        React.createElement('button', {
+          type: 'button',
+          className: 'am-number-btn',
+          onClick: function () { props.onChange(clamped + 1) },
+        }, '+'),
+      )
     }
 
     function SettingsPage() {
@@ -554,10 +855,17 @@ window.__ModuleLoader__.load({
         loadRepos(true)
       }, [])
 
+      // 表单脏标记：只要用户动过任何字段，轮询就不再拿服务器值覆盖草稿
+      var formRef = React.useRef(null)
+
       var refresh = function () {
         fetchStatus().then(function (next) {
           setStatus(next)
-          if (next && next.settings && form === null) setForm(cloneForm(next.settings))
+          if (next && next.settings && formRef.current === null) {
+            var f = cloneForm(next.settings)
+            formRef.current = f
+            setForm(f)
+          }
         }, function (error) {
           setStatus({ ok: false, error: String((error && error.message) || error) })
         })
@@ -569,7 +877,8 @@ window.__ModuleLoader__.load({
         return function () { clearInterval(timer) }
       }, [])
 
-      var flash = function (text) {
+      var flash = function (text, tone) {
+        amToast(text, tone)
         setNotice(text)
         setTimeout(function () { setNotice('') }, 5000)
       }
@@ -578,6 +887,7 @@ window.__ModuleLoader__.load({
         setForm(function (current) {
           var next = Object.assign({}, current || {})
           next[key] = value
+          formRef.current = next
           return next
         })
       }
@@ -688,11 +998,13 @@ window.__ModuleLoader__.load({
         patch.requestTimeoutMs = Number(form.requestTimeoutMs)
         patch.historyLimit = Number(form.historyLimit)
         patch.autoDiscoverFiles = !!form.autoDiscoverFiles
-        patch.writebackEveryN = Math.max(1, Number(form.writebackEveryN) || 1)
+        patch.writebackEveryN = Math.max(1, Number(form.writebackEveryN) || 5)
         patch.sessionPolicyMode = form.sessionPolicyMode === 'exclude' || form.sessionPolicyMode === 'include' ? form.sessionPolicyMode : 'all'
         patch.sessionPolicyIds = String(form.sessionPolicyIds || '')
           .split('\n').map(function (line) { return line.trim() }).filter(Boolean)
         patch.showGlobalNotice = !!form.showGlobalNotice
+        patch.showGlobalNoticeMode = form.showGlobalNoticeMode === 'persistent' ? 'persistent' : 'momentary'
+        patch.sessionsEnabledByDefault = !!form.sessionsEnabledByDefault
         patch.maxWriteFiles = Math.max(1, Number(form.maxWriteFiles) || 5)
         updateConfig(patch).then(function (result) {
           setBusy(false)
@@ -734,7 +1046,7 @@ window.__ModuleLoader__.load({
         triggerPull().then(function (next) {
           setBusy(false)
           setStatus(next)
-          flash(next && next.pullOk ? '拉取完成' : '拉取没有完全成功，看状态卡片')
+          flash(next && next.pullOk ? '拉取完成' : '拉取没有完全成功——多半是网络波动，稍后重试，已有记忆缓存不受影响 (´･ω･`)')
         }, function (error) {
           setBusy(false)
           flash('拉取失败：' + String((error && error.message) || error))
@@ -758,6 +1070,7 @@ window.__ModuleLoader__.load({
       var lastWriteback = status.lastWriteback
 
       return React.createElement('div', { className: 'am-panel am-settings' },
+        React.createElement(GuideBanner),
         React.createElement(Card, { title: '状态' },
           React.createElement(Row, { label: '最近拉取' },
             React.createElement('span', { className: 'am-value' },
@@ -873,9 +1186,10 @@ window.__ModuleLoader__.load({
         ),
 
         React.createElement(Card, { title: '触发与范围' },
-          React.createElement(FieldRow, { label: '每 N 次对话写回' },
-            React.createElement(NumberField, { value: form ? form.writebackEveryN : 1, onChange: function (v) { setField('writebackEveryN', v) } }),
+          React.createElement(FieldRow, { label: '每多少条对话写回一次记忆' },
+            React.createElement(NumberField, { value: form ? form.writebackEveryN : 5, onChange: function (v) { setField('writebackEveryN', v) } }),
           ),
+          React.createElement('div', { className: 'am-notice' }, '填 1 = 每条对话结束后都写回；填 5 = 攒够 5 条才写一次。数字越大越省模型额度。'),
           React.createElement(FieldRow, { label: '应用于会话' },
             React.createElement('select', {
               className: 'am-input',
@@ -888,12 +1202,15 @@ window.__ModuleLoader__.load({
             ),
           ),
           form && form.sessionPolicyMode !== 'all'
-            ? React.createElement(FieldRow, { label: '会话 ID（每行一个）' },
-                React.createElement(TextAreaField, {
-                  value: form.sessionPolicyIds,
-                  placeholder: '粘贴会话 ID，每行一个',
-                  onChange: function (v) { setField('sessionPolicyIds', v) },
-                }),
+            ? React.createElement(React.Fragment, null,
+                React.createElement(FieldRow, { label: '会话 ID（每行一个）' },
+                  React.createElement(TextAreaField, {
+                    value: form.sessionPolicyIds,
+                    placeholder: '粘贴会话 ID，每行一个',
+                    onChange: function (v) { setField('sessionPolicyIds', v) },
+                  }),
+                ),
+                React.createElement('div', { className: 'am-notice' }, '会话 ID 是每个对话窗口的「门牌号」。去左侧会话列表，点那一行的「⋯」→「复制会话 ID」，回来粘贴即可；只填一段也能模糊匹配。'),
               )
             : null,
           React.createElement(Row, { label: '写回变动全局提示' },
@@ -902,6 +1219,25 @@ window.__ModuleLoader__.load({
               onToggle: function () { setField('showGlobalNotice', form ? form.showGlobalNotice === false : false) },
               disabled: busy,
               title: '输入框下方全程提示：整理中（常驻）→ 已更新 / 无新记忆 / 失败',
+            }),
+          ),
+          React.createElement(FieldRow, { label: '胶囊显示方式' },
+            React.createElement('select', {
+              className: 'am-input',
+              value: form ? (form.showGlobalNoticeMode === 'momentary' ? 'momentary' : 'persistent') : 'persistent',
+              onChange: function (event) { setField('showGlobalNoticeMode', event.target.value) },
+            },
+              React.createElement('option', { value: 'momentary' }, '仅变动后临时显示'),
+              React.createElement('option', { value: 'persistent' }, '长期显示最近状态'),
+            ),
+          ),
+          React.createElement('div', { className: 'am-notice' }, '临时 = 弹几秒就消失；长期 = 「记忆已更新 / 无新记忆」小胶囊一直挂到下次变化。'),
+          React.createElement(Row, { label: '新建对话默认使用 Get记忆' },
+            React.createElement(Switch, {
+              on: form ? form.sessionsEnabledByDefault !== false : true,
+              onToggle: function () { setField('sessionsEnabledByDefault', form ? form.sessionsEnabledByDefault === false : false) },
+              disabled: busy,
+              title: '关闭后，新建对话默认暂停写回（每个窗口输入框下方可单独再开）',
             }),
           ),
         ),
@@ -927,7 +1263,31 @@ window.__ModuleLoader__.load({
           React.createElement('div', { className: 'am-notice' }, '更新方式：`dsh plugin --profile web add dsh-get-memory@最新版本号`'),
         ),
 
-        React.createElement('div', { className: 'am-row' },
+        React.createElement(Card, { title: '关于 Get记忆' },
+          React.createElement('div', { className: 'am-row' },
+            React.createElement('a', { className: 'am-link', href: 'https://github.com/krodon998/dsh-get-memory', target: '_blank', rel: 'noreferrer' }, 'GitHub 仓库'),
+            React.createElement('a', { className: 'am-link', href: 'https://github.com/krodon998/dsh-get-memory/issues', target: '_blank', rel: 'noreferrer' }, '问题反馈'),
+            React.createElement(GuideLauncher),
+          ),
+          React.createElement('details', { className: 'am-changelog' },
+            React.createElement('summary', null, '更新记录'),
+            React.createElement('div', { className: 'am-changelog-body' }, [
+              ['v0.5.0', '设置引导、本窗口记忆开关、胶囊常显/临时模式、拉取404自动清理、文案易读化'],
+              ['v0.4.2', '注入绑定声明（代入感兜底）'],
+              ['v0.4.1', '一键初始化空仓库、设置页检查更新'],
+              ['v0.4.0', '令牌驱动仓库选择器、安全默认（空仓库不注入、写回默认关）'],
+              ['v0.3.x', '文件权限中心、多文件写回、触发与范围、全局提示胶囊'],
+            ].map(function (entry) {
+              return React.createElement('div', { className: 'am-changelog-row', key: entry[0] },
+                React.createElement('span', { className: 'am-changelog-ver' }, entry[0]),
+                React.createElement('span', null, entry[1]),
+              )
+            })),
+          ),
+        ),
+
+        React.createElement('div', { className: 'am-save-bar' },
+          React.createElement('span', { className: 'am-save-hint' }, '有改动记得保存，否则不生效'),
           React.createElement(Button, { primary: true, onClick: onSave, disabled: busy || !form }, busy ? '保存中…' : '保存全部设置'),
         ),
         notice ? React.createElement('div', { className: 'am-notice' }, notice) : null,
@@ -953,20 +1313,29 @@ window.__ModuleLoader__.load({
         sessionPolicyMode: settings.sessionPolicyMode,
         sessionPolicyIds: Array.isArray(settings.sessionPolicyIds) ? settings.sessionPolicyIds.join('\n') : '',
         showGlobalNotice: settings.showGlobalNotice,
+        showGlobalNoticeMode: settings.showGlobalNoticeMode === 'momentary' ? 'momentary' : 'persistent',
+        sessionsEnabledByDefault: settings.sessionsEnabledByDefault,
         maxWriteFiles: settings.maxWriteFiles,
       }
     }
 
-    // Layer: 全局提示——写回全程可见：进行中常驻「记忆整理中…」，成功后短暂显示「记忆已更新」。
+    // Layer: 全局提示——写回全程可见：进行中常驻「记忆整理中…」，成功后按模式显示「记忆已更新」。
+    // showGlobalNoticeMode: 'momentary' = 变动后临时显示几秒；'persistent' = 常驻显示最近状态直到下次变化。
     function GlobalMemoryNotice() {
-      var statePair = React.useState(null) // { kind: 'progress' | 'done' | 'error', text: string }
+      var statePair = React.useState(null) // { kind: 'progress' | 'done' | 'error' | 'skip', text: string }
       var state = statePair[0]
       var setState = statePair[1]
       var lastSeenPair = React.useRef(null)
+      var modeRef = React.useRef('momentary')
 
       React.useEffect(function () {
         var alive = true
         var hideTimer = null
+        var scheduleHide = function (ms) {
+          if (modeRef.current === 'persistent') return // 常显模式：不自动消失
+          if (hideTimer) clearTimeout(hideTimer)
+          hideTimer = setTimeout(function () { if (alive) setState(null) }, ms)
+        }
         var poll = function () {
           fetchStatus().then(function (status) {
             if (!alive || !status || status.ok === false) return
@@ -974,13 +1343,13 @@ window.__ModuleLoader__.load({
               setState(null)
               return
             }
+            modeRef.current = status.settings && status.settings.showGlobalNoticeMode === 'persistent' ? 'persistent' : 'momentary'
             var wb = status.lastWriteback
             if (!wb || !wb.phase) {
               setState(null)
               return
             }
             if (wb.phase === 'attempt') {
-              // 写回进行中：常驻提示，直到状态变化
               if (hideTimer) clearTimeout(hideTimer)
               setState({ kind: 'progress', text: '记忆整理中…' })
               return
@@ -989,8 +1358,7 @@ window.__ModuleLoader__.load({
               if (lastSeenPair.current !== wb.at) {
                 lastSeenPair.current = wb.at
                 setState({ kind: 'done', text: wb.summary || '记忆已更新' })
-                if (hideTimer) clearTimeout(hideTimer)
-                hideTimer = setTimeout(function () { if (alive) setState(null) }, 12000)
+                scheduleHide(12000)
               }
               return
             }
@@ -998,8 +1366,7 @@ window.__ModuleLoader__.load({
               if (lastSeenPair.current !== 'err:' + wb.at) {
                 lastSeenPair.current = 'err:' + wb.at
                 setState({ kind: 'error', text: '记忆写回失败' })
-                if (hideTimer) clearTimeout(hideTimer)
-                hideTimer = setTimeout(function () { if (alive) setState(null) }, 8000)
+                scheduleHide(8000)
               }
               return
             }
@@ -1007,11 +1374,10 @@ window.__ModuleLoader__.load({
               if (lastSeenPair.current !== 'skip:' + wb.at) {
                 lastSeenPair.current = 'skip:' + wb.at
                 var skipText = wb.reason === 'transcript-too-short' ? '对话太短，已跳过'
-                  : wb.reason === 'every-n' ? '本轮跳过（每 N 次写回）'
+                  : wb.reason === 'every-n' ? '本轮跳过（每 ' + (status.settings && status.settings.writebackEveryN ? status.settings.writebackEveryN : 5) + ' 条对话写回一次）'
                   : '无新记忆'
                 setState({ kind: 'skip', text: skipText })
-                if (hideTimer) clearTimeout(hideTimer)
-                hideTimer = setTimeout(function () { if (alive) setState(null) }, 8000)
+                scheduleHide(8000)
               }
               return
             }
@@ -1040,27 +1406,128 @@ window.__ModuleLoader__.load({
       )
     }
 
+    // Layer: 输入框下方 Dock——本窗口开关 + 全局提示胶囊。
+    function DockMemoryControl(props) {
+      var session = props && props.sessionId ? String(props.sessionId) : ''
+      var enabledPair = React.useState(null)
+      var enabled = enabledPair[0]
+      var setEnabled = enabledPair[1]
+
+      React.useEffect(function () {
+        var alive = true
+        fetchSessionEnabled(session).then(function (result) {
+          if (alive && result && result.ok) setEnabled(!!result.enabled)
+        }, function () { /* 忽略 */ })
+        return function () { alive = false }
+      }, [session])
+
+      var toggle = function () {
+        var next = !enabled
+        setEnabled(next)
+        setSessionEnabled(session, next).then(function (result) {
+          if (result && result.ok) setEnabled(!!result.enabled)
+        }, function () { /* 失败恢复原样 */
+          fetchSessionEnabled(session).then(function (r) { if (r && r.ok) setEnabled(!!r.enabled) })
+        })
+      }
+
+      return React.createElement('div', { className: 'am-dock-control' },
+        React.createElement('div', { className: 'am-dock-pill' },
+          React.createElement('button', {
+            type: 'button',
+            className: 'am-session-toggle' + (enabled ? ' am-on' : ''),
+            onClick: toggle,
+            title: enabled ? '本窗口正在使用 Get记忆（点击关闭写回）' : '本窗口已暂停写回记忆（点击开启）',
+          }, '记忆' + (enabled === null ? '' : enabled ? ' ✓' : ' ✕')),
+          React.createElement(GlobalMemoryNotice),
+        ),
+      )
+    }
+
     // Layer: mount the right-rail icon, the main panel, the Plugins-page row config page, and package styles; all reversible.
     var name = 'dsh-aire-memory'
     var inject = ['slots']
+
+    // 顶部提醒气泡：挂到 body 上（全局唯一），操作反馈统一从这里弹出。
+    var ToastReactDOM = null
+    try { ToastReactDOM = require('react-dom') } catch { ToastReactDOM = null }
+    var toastRootEl = null
+    function mountToastHost() {
+      if (toastRootEl && document.body && document.body.contains(toastRootEl)) return
+      try {
+        toastRootEl = document.createElement('div')
+        toastRootEl.id = 'am-toast-root'
+        document.body.appendChild(toastRootEl)
+        if (ToastReactDOM && typeof ToastReactDOM.createRoot === 'function') {
+          ToastReactDOM.createRoot(toastRootEl).render(React.createElement(ToastHost))
+        } else if (ToastReactDOM && typeof ToastReactDOM.render === 'function') {
+          ToastReactDOM.render(React.createElement(ToastHost), toastRootEl)
+        }
+      } catch { toastRootEl = null }
+    }
 
     function apply(ctx, config) {
       var slots = ctx.get('slots')
       if (slots === undefined || React === undefined) return
 
       ctx.effect(installStyles, 'aire-memory: styles')
+      ctx.effect(mountToastHost, 'aire-memory: toast host')
 
-      // 全局提示：写回有变动时在输入框下方显示小条（conversation.composer.dock）
+      // 全局提示 + 本窗口开关：输入框下方（conversation.composer.dock）
       ctx.effect(function () {
         return slots.inject('conversation.composer.dock', function () {
           return slots.register(
             { name: 'conversation.composer.dock', id: 'aire-memory-notice', order: 20, label: 'Get记忆' },
-            function AireGlobalNotice() {
-              return React.createElement(GlobalMemoryNotice)
+            function AireDockControl(props) {
+              return React.createElement(DockMemoryControl, props)
             },
           )
         })
       }, 'aire-memory: global notice')
+
+      // 会话列表「⋯」菜单：复制会话 ID（配合设置页「应用于会话」）
+      ctx.effect(function () {
+        return slots.inject('sidebar.workspaces.session.menu.item', function () {
+          return slots.register(
+            { name: 'sidebar.workspaces.session.menu.item', id: 'dsh-get-memory-copy-session-id', order: 450 },
+            function CopySessionIdMenuItem(props) {
+              var useMenuOpenState = props && typeof props.useMenuOpenState === 'function' ? props.useMenuOpenState : null
+              var setMenuOpen = useMenuOpenState ? useMenuOpenState()[1] : null
+              var onSelect = function () {
+                if (setMenuOpen) setMenuOpen(false)
+                var id = String((props && props.sessionId) || '')
+                var toast = function () { amToast(id ? '已复制会话 ID：' + id : '这个会话暂时没有 ID') }
+                try {
+                  if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(id).then(toast, function () {
+                      try { window.prompt('复制下面这串会话 ID：', id) } catch { /* 忽略 */ }
+                      toast()
+                    })
+                  } else {
+                    try { window.prompt('复制下面这串会话 ID：', id) } catch { /* 忽略 */ }
+                    toast()
+                  }
+                } catch { toast() }
+              }
+              return React.createElement('button', {
+                type: 'button',
+                role: 'menuitem',
+                className: 'am-menu-item',
+                onClick: onSelect,
+                title: '复制到剪贴板，粘贴进设置页「应用于会话」',
+              },
+                React.createElement('span', { className: 'am-menu-item-icon' },
+                  React.createElement('svg', { viewBox: '0 0 16 16', width: 14, height: 14, fill: 'none', 'aria-hidden': 'true' },
+                    React.createElement('rect', { x: 5.5, y: 5.5, width: 8, height: 8, rx: 1.5, stroke: 'currentColor', strokeWidth: 1.2 }),
+                    React.createElement('path', { d: 'M10.5 4.5V3.75a.75.75 0 0 0-.75-.75h-6a.75.75 0 0 0-.75.75v6c0 .414.336.75.75.75h.75', stroke: 'currentColor', strokeWidth: 1.2 }),
+                  ),
+                ),
+                React.createElement('span', null, '复制会话 ID'),
+              )
+            },
+          )
+        })
+      }, 'aire-memory: session menu copy id')
 
       // 原生设置页里的完整配置页面（settings.section）
       ctx.effect(function () {

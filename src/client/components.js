@@ -106,7 +106,8 @@
         return function () { clearInterval(timer) }
       }, [])
 
-      var flash = function (text) {
+      var flash = function (text, tone) {
+        amToast(text, tone)
         setNotice(text)
         setTimeout(function () { setNotice('') }, 4000)
       }
@@ -117,7 +118,7 @@
         triggerPull().then(function (next) {
           setStatus(next)
           setBusy(false)
-          flash(next && next.pullOk ? '拉取完成' : '拉取没有完全成功，看状态卡片')
+          flash(next && next.pullOk ? '拉取完成' : '拉取没有完全成功——多半是网络波动，稍后重试，已有记忆缓存不受影响 (´･ω･`)')
         }, function (error) {
           setBusy(false)
           flash('拉取失败：' + String((error && error.message) || error))
@@ -177,6 +178,7 @@
       var lastWriteback = status && status.lastWriteback
 
       return React.createElement('div', { className: 'am-panel' },
+        React.createElement(GuideBanner),
         React.createElement(Card, { title: React.createElement(React.Fragment, null,
           React.createElement(AireIcon, { size: 16 }),
           'Get记忆 · ' + ((status && status.repo) || ''),
@@ -233,7 +235,7 @@
           ),
         ),
 
-        React.createElement(Card, { title: '最近记录' },
+        React.createElement(Card, { title: '最近修改记录' },
           React.createElement(HistoryList, { history: status && status.history }),
         ),
 

@@ -27,12 +27,45 @@
     }
 
     function NumberField(props) {
-      return React.createElement('input', {
-        className: 'am-input',
-        type: 'number',
-        value: props.value === undefined || props.value === null ? '' : String(props.value),
-        onChange: function (event) { props.onChange(Number(event.target.value)) },
-      })
+      var min = props.min === undefined ? 1 : props.min
+      var current = Number(props.value)
+      var clamped = Number.isFinite(current) ? Math.max(min, Math.floor(current)) : min
+      return React.createElement('div', { className: 'am-number-field' },
+        React.createElement('button', {
+          type: 'button',
+          className: 'am-number-btn',
+          disabled: clamped <= min,
+          title: clamped <= min ? '最小就是 ' + min : '',
+          onClick: function () { props.onChange(Math.max(min, clamped - 1)) },
+        }, '−'),
+        React.createElement('input', {
+          className: 'am-input am-number-input',
+          type: 'number',
+          min: min,
+          step: 1,
+          value: props.value === undefined || props.value === null ? '' : String(props.value),
+          onChange: function (event) {
+            var raw = event.target.value
+            var num = Number(raw)
+            if (raw === '' || !Number.isFinite(num) || num < min) {
+              // 输入非法时先不写回，失焦时 NumberField 的 value 仍受控；直接夹到最小
+              if (raw === '') return
+              props.onChange(min)
+              return
+            }
+            props.onChange(Math.floor(num))
+          },
+          onBlur: function (event) {
+            var num = Number(event.target.value)
+            if (!Number.isFinite(num) || num < min) props.onChange(min)
+          },
+        }),
+        React.createElement('button', {
+          type: 'button',
+          className: 'am-number-btn',
+          onClick: function () { props.onChange(clamped + 1) },
+        }, '+'),
+      )
     }
 
     function SettingsPage() {
@@ -73,10 +106,17 @@
         loadRepos(true)
       }, [])
 
+      // 表单脏标记：只要用户动过任何字段，轮询就不再拿服务器值覆盖草稿
+      var formRef = React.useRef(null)
+
       var refresh = function () {
         fetchStatus().then(function (next) {
           setStatus(next)
-          if (next && next.settings && form === null) setForm(cloneForm(next.settings))
+          if (next && next.settings && formRef.current === null) {
+            var f = cloneForm(next.settings)
+            formRef.current = f
+            setForm(f)
+          }
         }, function (error) {
           setStatus({ ok: false, error: String((error && error.message) || error) })
         })
@@ -88,7 +128,8 @@
         return function () { clearInterval(timer) }
       }, [])
 
-      var flash = function (text) {
+      var flash = function (text, tone) {
+        amToast(text, tone)
         setNotice(text)
         setTimeout(function () { setNotice('') }, 5000)
       }
@@ -97,6 +138,7 @@
         setForm(function (current) {
           var next = Object.assign({}, current || {})
           next[key] = value
+          formRef.current = next
           return next
         })
       }
@@ -207,11 +249,13 @@
         patch.requestTimeoutMs = Number(form.requestTimeoutMs)
         patch.historyLimit = Number(form.historyLimit)
         patch.autoDiscoverFiles = !!form.autoDiscoverFiles
-        patch.writebackEveryN = Math.max(1, Number(form.writebackEveryN) || 1)
+        patch.writebackEveryN = Math.max(1, Number(form.writebackEveryN) || 5)
         patch.sessionPolicyMode = form.sessionPolicyMode === 'exclude' || form.sessionPolicyMode === 'include' ? form.sessionPolicyMode : 'all'
         patch.sessionPolicyIds = String(form.sessionPolicyIds || '')
           .split('\n').map(function (line) { return line.trim() }).filter(Boolean)
         patch.showGlobalNotice = !!form.showGlobalNotice
+        patch.showGlobalNoticeMode = form.showGlobalNoticeMode === 'persistent' ? 'persistent' : 'momentary'
+        patch.sessionsEnabledByDefault = !!form.sessionsEnabledByDefault
         patch.maxWriteFiles = Math.max(1, Number(form.maxWriteFiles) || 5)
         updateConfig(patch).then(function (result) {
           setBusy(false)
@@ -253,7 +297,7 @@
         triggerPull().then(function (next) {
           setBusy(false)
           setStatus(next)
-          flash(next && next.pullOk ? '拉取完成' : '拉取没有完全成功，看状态卡片')
+          flash(next && next.pullOk ? '拉取完成' : '拉取没有完全成功——多半是网络波动，稍后重试，已有记忆缓存不受影响 (´･ω･`)')
         }, function (error) {
           setBusy(false)
           flash('拉取失败：' + String((error && error.message) || error))
@@ -277,6 +321,7 @@
       var lastWriteback = status.lastWriteback
 
       return React.createElement('div', { className: 'am-panel am-settings' },
+        React.createElement(GuideBanner),
         React.createElement(Card, { title: '状态' },
           React.createElement(Row, { label: '最近拉取' },
             React.createElement('span', { className: 'am-value' },
@@ -392,9 +437,10 @@
         ),
 
         React.createElement(Card, { title: '触发与范围' },
-          React.createElement(FieldRow, { label: '每 N 次对话写回' },
-            React.createElement(NumberField, { value: form ? form.writebackEveryN : 1, onChange: function (v) { setField('writebackEveryN', v) } }),
+          React.createElement(FieldRow, { label: '每多少条对话写回一次记忆' },
+            React.createElement(NumberField, { value: form ? form.writebackEveryN : 5, onChange: function (v) { setField('writebackEveryN', v) } }),
           ),
+          React.createElement('div', { className: 'am-notice' }, '填 1 = 每条对话结束后都写回；填 5 = 攒够 5 条才写一次。数字越大越省模型额度。'),
           React.createElement(FieldRow, { label: '应用于会话' },
             React.createElement('select', {
               className: 'am-input',
@@ -407,12 +453,15 @@
             ),
           ),
           form && form.sessionPolicyMode !== 'all'
-            ? React.createElement(FieldRow, { label: '会话 ID（每行一个）' },
-                React.createElement(TextAreaField, {
-                  value: form.sessionPolicyIds,
-                  placeholder: '粘贴会话 ID，每行一个',
-                  onChange: function (v) { setField('sessionPolicyIds', v) },
-                }),
+            ? React.createElement(React.Fragment, null,
+                React.createElement(FieldRow, { label: '会话 ID（每行一个）' },
+                  React.createElement(TextAreaField, {
+                    value: form.sessionPolicyIds,
+                    placeholder: '粘贴会话 ID，每行一个',
+                    onChange: function (v) { setField('sessionPolicyIds', v) },
+                  }),
+                ),
+                React.createElement('div', { className: 'am-notice' }, '会话 ID 是每个对话窗口的「门牌号」。去左侧会话列表，点那一行的「⋯」→「复制会话 ID」，回来粘贴即可；只填一段也能模糊匹配。'),
               )
             : null,
           React.createElement(Row, { label: '写回变动全局提示' },
@@ -421,6 +470,25 @@
               onToggle: function () { setField('showGlobalNotice', form ? form.showGlobalNotice === false : false) },
               disabled: busy,
               title: '输入框下方全程提示：整理中（常驻）→ 已更新 / 无新记忆 / 失败',
+            }),
+          ),
+          React.createElement(FieldRow, { label: '胶囊显示方式' },
+            React.createElement('select', {
+              className: 'am-input',
+              value: form ? (form.showGlobalNoticeMode === 'momentary' ? 'momentary' : 'persistent') : 'persistent',
+              onChange: function (event) { setField('showGlobalNoticeMode', event.target.value) },
+            },
+              React.createElement('option', { value: 'momentary' }, '仅变动后临时显示'),
+              React.createElement('option', { value: 'persistent' }, '长期显示最近状态'),
+            ),
+          ),
+          React.createElement('div', { className: 'am-notice' }, '临时 = 弹几秒就消失；长期 = 「记忆已更新 / 无新记忆」小胶囊一直挂到下次变化。'),
+          React.createElement(Row, { label: '新建对话默认使用 Get记忆' },
+            React.createElement(Switch, {
+              on: form ? form.sessionsEnabledByDefault !== false : true,
+              onToggle: function () { setField('sessionsEnabledByDefault', form ? form.sessionsEnabledByDefault === false : false) },
+              disabled: busy,
+              title: '关闭后，新建对话默认暂停写回（每个窗口输入框下方可单独再开）',
             }),
           ),
         ),
@@ -446,7 +514,31 @@
           React.createElement('div', { className: 'am-notice' }, '更新方式：`dsh plugin --profile web add dsh-get-memory@最新版本号`'),
         ),
 
-        React.createElement('div', { className: 'am-row' },
+        React.createElement(Card, { title: '关于 Get记忆' },
+          React.createElement('div', { className: 'am-row' },
+            React.createElement('a', { className: 'am-link', href: 'https://github.com/krodon998/dsh-get-memory', target: '_blank', rel: 'noreferrer' }, 'GitHub 仓库'),
+            React.createElement('a', { className: 'am-link', href: 'https://github.com/krodon998/dsh-get-memory/issues', target: '_blank', rel: 'noreferrer' }, '问题反馈'),
+            React.createElement(GuideLauncher),
+          ),
+          React.createElement('details', { className: 'am-changelog' },
+            React.createElement('summary', null, '更新记录'),
+            React.createElement('div', { className: 'am-changelog-body' }, [
+              ['v0.5.0', '设置引导、本窗口记忆开关、胶囊常显/临时模式、拉取404自动清理、文案易读化'],
+              ['v0.4.2', '注入绑定声明（代入感兜底）'],
+              ['v0.4.1', '一键初始化空仓库、设置页检查更新'],
+              ['v0.4.0', '令牌驱动仓库选择器、安全默认（空仓库不注入、写回默认关）'],
+              ['v0.3.x', '文件权限中心、多文件写回、触发与范围、全局提示胶囊'],
+            ].map(function (entry) {
+              return React.createElement('div', { className: 'am-changelog-row', key: entry[0] },
+                React.createElement('span', { className: 'am-changelog-ver' }, entry[0]),
+                React.createElement('span', null, entry[1]),
+              )
+            })),
+          ),
+        ),
+
+        React.createElement('div', { className: 'am-save-bar' },
+          React.createElement('span', { className: 'am-save-hint' }, '有改动记得保存，否则不生效'),
           React.createElement(Button, { primary: true, onClick: onSave, disabled: busy || !form }, busy ? '保存中…' : '保存全部设置'),
         ),
         notice ? React.createElement('div', { className: 'am-notice' }, notice) : null,
@@ -472,6 +564,8 @@
         sessionPolicyMode: settings.sessionPolicyMode,
         sessionPolicyIds: Array.isArray(settings.sessionPolicyIds) ? settings.sessionPolicyIds.join('\n') : '',
         showGlobalNotice: settings.showGlobalNotice,
+        showGlobalNoticeMode: settings.showGlobalNoticeMode === 'momentary' ? 'momentary' : 'persistent',
+        sessionsEnabledByDefault: settings.sessionsEnabledByDefault,
         maxWriteFiles: settings.maxWriteFiles,
       }
     }
