@@ -1,5 +1,5 @@
     // Layer: mount the right-rail icon, the main panel, the Plugins-page row config page, and package styles; all reversible.
-    var name = 'dsh-aire-memory'
+    var name = 'dsh-get-memory'
     var inject = ['slots']
 
     // 顶部提醒气泡：挂到 body 上（全局唯一），操作反馈统一从这里弹出。

@@ -5,7 +5,7 @@
 ## 1. GitHub 仓库（隐的账号）
 
 - [x] 新建公开仓库（建议名：`dsh-get-memory`，与包名一致），描述写「Get记忆插件：对话开始时自动拉取GitHub指定仓库的内容并注入上下文；对话结束时提取值得长期记住的新信息写回并提交；左栏快捷面板实时查看状态，设置界面进行详细配置」
-- [x] 把本目录（local-plugins/dsh-aire-memory）作为仓库根推送（README / LICENSE 已就绪）
+- [x] 把本目录（插件源码目录）作为仓库根推送（README / LICENSE 已就绪）
 - [x] 添加 topic：`dsh-plugin`、`deepseek-harness`（另加 `cordis`、`get-memory`）
 - [x] 发布第一个 Release（v0.3.1）
 

@@ -11,4 +11,4 @@
     var FILESYNC_URL = '/aire-memory/filesync'
     var TOKEN_REF = 'AIRE_MEMORY_GITHUB_TOKEN'
     var PANEL_KEY = 'aire-memory'
-    var STYLE_ID = 'dsh-aire-memory-style'
+    var STYLE_ID = 'dsh-get-memory-style'

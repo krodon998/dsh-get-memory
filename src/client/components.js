@@ -1,4 +1,4 @@
-    // Layer: panel icon and the main Aire 记忆 panel.
+    // Layer: panel icon and the main Get记忆 panel.
     function AireIcon(props) {
       var size = props && props.size ? props.size : 20
       var active = !!(props && props.active)
